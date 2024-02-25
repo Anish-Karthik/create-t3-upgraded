@@ -105,6 +105,7 @@ git add .
 npm install
 `,
 };
+let projectName = '';
 async function initial() {
   console.clear();
   const msg = `create t3 app`;
@@ -126,7 +127,7 @@ async function creatorIntro() {
 async function askQuestions() {
   const answers = await inquirer.prompt(QUESTIONS);
   const projectChoice = CHOICES[0];
-  const projectName = answers['project-name'];
+  projectName = answers['project-name'];
   const templatePath = `${__dirname}/templates/${projectChoice}`;
   const updateDependencies = answers['update-dependencies'];
   const customGitHook = answers['custom-git-hook'];
@@ -177,7 +178,7 @@ async function runCommand(commandToRun, cmdName = '', name2 = '', showSpinner = 
   }
 }
 // Create git hooks
-async function createGitHook(hookFileName, hookContent) {
+async function createGitHook(hookFileName, hookContent, showSpinner = true) {
   const spinner = showSpinner
   ? createSpinner(`Creating ${hookFileName} hook...`).start()
   : null;
@@ -201,6 +202,7 @@ async function instantiateGit() {
     fs.writeFileSync(`${CURR_DIR}/${projectName}/.gitignore`, gitIgnore);
     spinner.success('Git repository initialized successfully');
   } catch (error) {
+    console.log(error)
     spinner.error('Error initializing git repository');
   }
 }
