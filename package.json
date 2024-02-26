@@ -1,6 +1,6 @@
 {
   "name": "create-t3-app-upgraded",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Project for instantiating projects via cli",
   "main": "index.js",
   "type": "module",

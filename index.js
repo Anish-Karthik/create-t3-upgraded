@@ -58,6 +58,46 @@ git add .
 npm install
 `,
 };
+
+const gitIgnore = `
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+.env
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+`
 class TemplateCLI {
   constructor() {
     this.projectName = '';
@@ -165,7 +205,9 @@ class TemplateCLI {
         false
       );
       // CREATE .gitignore
-      // fs.writeFileSync(`${CURR_DIR}/${this.projectName}/.gitignore`, gitIgnore);
+      fs.writeFileSync(`${CURR_DIR}/${this.projectName}/.gitignore`, gitIgnore);
+      // copy .env.example into .env file
+      fs.copyFileSync(`${CURR_DIR}/${this.projectName}/.env.example`, `${CURR_DIR}/${this.projectName}/.env`);
       spinner.success('Git repository initialized successfully');
     } catch (error) {
       console.log(error);
