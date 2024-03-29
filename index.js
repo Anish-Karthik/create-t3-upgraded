@@ -35,7 +35,7 @@ const QUESTIONS = [
     name: 'custom-git-hook',
     type: 'confirm',
     message: 'Do you want to use custom git hooks?',
-    default: true,
+    default: false,
   },
   {
     name: 'update-dependencies',
@@ -97,10 +97,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-`
+`;
 class TemplateCLI {
   constructor() {
     this.projectName = '';
+    this.templatePath = `${__dirname}/templates/${CHOICES[0]}`;
   }
 
   async initial() {
@@ -127,7 +128,7 @@ class TemplateCLI {
     const answers = await inquirer.prompt(QUESTIONS);
     const projectChoice = CHOICES[0];
     this.projectName = answers['project-name'];
-    const templatePath = `${__dirname}/templates/${projectChoice}`;
+    this.templatePath = `${__dirname}/templates/${projectChoice}`;
     const updateDependencies = answers['update-dependencies'];
     const customGitHook = answers['custom-git-hook'];
 
@@ -135,11 +136,12 @@ class TemplateCLI {
     fs.mkdirSync(`${CURR_DIR}/${this.projectName}`);
     spinner.success('Project created successfully');
 
+    // Create project directory and copy template files
+    createDirectoryContents(this.templatePath, this.projectName);
     // Initialize git repository
     await this.instantiateGit();
-    // Create project directory and copy template files
-    createDirectoryContents(templatePath, this.projectName);
 
+    await this.copyEnvFile();
     if (updateDependencies) {
       (await this.runCommand(`cd ${this.projectName} && npm install`, 'Install', 'Dependencies')) &&
         (await this.runCommand(
@@ -195,6 +197,29 @@ class TemplateCLI {
     }
   }
 
+  async copyEnvFile() {
+    const spinner = createSpinner('Creating .env file...').start();
+    try {
+      // copy .env.example into .env file
+      // create .env file
+      fs.writeFileSync(`${CURR_DIR}/${this.projectName}/.env`, '');
+      fs.copyFileSync(`${this.templatePath}/.env.example`, `${CURR_DIR}/${this.projectName}/.env`);
+      spinner.success('.env file created successfully');
+    } catch (error) {
+      spinner.error('Error creating .env file');
+    }
+  }
+
+  async createGitIgnore() {
+    const spinner = createSpinner('Creating .gitignore file...').start();
+    try {
+      fs.writeFileSync(`${CURR_DIR}/${this.projectName}/.gitignore`, gitIgnore);
+      spinner.success('.gitignore file created successfully');
+    } catch (error) {
+      spinner.error('Error creating .gitignore file');
+    }
+  }
+
   async instantiateGit() {
     const spinner = createSpinner('Initializing git repository...').start();
     try {
@@ -205,9 +230,7 @@ class TemplateCLI {
         false
       );
       // CREATE .gitignore
-      fs.writeFileSync(`${CURR_DIR}/${this.projectName}/.gitignore`, gitIgnore);
-      // copy .env.example into .env file
-      fs.copyFileSync(`${CURR_DIR}/${this.projectName}/.env.example`, `${CURR_DIR}/${this.projectName}/.env`);
+      await this.createGitIgnore();
       spinner.success('Git repository initialized successfully');
     } catch (error) {
       console.log(error);
